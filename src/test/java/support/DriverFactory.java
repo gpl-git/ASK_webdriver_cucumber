@@ -17,6 +17,8 @@ import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.remote.LocalFileDetector;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.safari.SafariDriver;
+import io.github.bonigarcia.wdm.WebDriverManager; 
+
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -35,36 +37,41 @@ public class DriverFactory {
             Point position = new Point(0, 0);
             if (testConfig.getTestExecutionMode().equals("local")) {
                 switch (testConfig.getBrowser()) {
-                    case "chrome":
-                        Map<String, Object> chromePreferences = new HashMap<>();
-                        chromePreferences.put("profile.default_content_settings.geolocation", 2);
-                        chromePreferences.put("profile.default_content_settings.popups", 0);
-                        chromePreferences.put("download.prompt_for_download", false);
-                        chromePreferences.put("download.directory_upgrade", true);
-                        chromePreferences.put("download.default_directory", System.getProperty("user.dir") + "/src/test/resources/downloads");
-                        chromePreferences.put("safebrowsing.enabled", false);
-                        chromePreferences.put("plugins.always_open_pdf_externally", true);
-                        chromePreferences.put("plugins.plugins_disabled", new ArrayList<String>(){{ add("Chrome PDF Viewer"); }});
-                        chromePreferences.put("credentials_enable_service", false);
-                        chromePreferences.put("password_manager_enabled", false);
-                        // for EMEA only - disable cookies
-//                    chromePreferences.put("profile.default_content_setting_values.cookies", 2);
-                        ChromeOptions chromeOptions = new ChromeOptions();
-                        chromeOptions.addArguments("--start-maximized");
-                        chromeOptions.addArguments("--remote-allow-origins=*");
-                        chromeOptions.setExperimentalOption("prefs", chromePreferences);
-                        System.setProperty(ChromeDriverService.CHROME_DRIVER_SILENT_OUTPUT_PROPERTY, "true");
-                        System.setProperty(ChromeDriverService.CHROME_DRIVER_LOG_LEVEL_PROPERTY, "SEVERE");
-                        if (testConfig.isHeadless()) {
-                            chromeOptions.addArguments("--headless=new");
-                            chromeOptions.addArguments("--window-size=" + size.getWidth() + "," + size.getWidth());
-                            chromeOptions.addArguments("--disable-gpu");
-                        }
-                        ChromeDriverService service = new ChromeDriverService.Builder()
-                                .withLogOutput(System.out)
-                                .build();
-                        driverThreadLocal.set(new ChromeDriver(service, chromeOptions));
-                        break;
+                   case "chrome":
+    Map<String, Object> chromePreferences = new HashMap<>();
+    chromePreferences.put("profile.default_content_settings.geolocation", 2);
+    chromePreferences.put("profile.default_content_settings.popups", 0);
+    chromePreferences.put("download.prompt_for_download", false);
+    chromePreferences.put("download.directory_upgrade", true);
+    chromePreferences.put("download.default_directory", System.getProperty("user.dir") + "/src/test/resources/downloads");
+    chromePreferences.put("safebrowsing.enabled", false);
+    chromePreferences.put("plugins.always_open_pdf_externally", true);
+    chromePreferences.put("plugins.plugins_disabled", new ArrayList<String>(){{ add("Chrome PDF Viewer"); }});
+    chromePreferences.put("credentials_enable_service", false);
+    chromePreferences.put("password_manager_enabled", false);
+    
+    ChromeOptions chromeOptions = new ChromeOptions();
+    chromeOptions.addArguments("--start-maximized");
+    chromeOptions.addArguments("--remote-allow-origins=*");
+    chromeOptions.addArguments("--disable-dev-shm-usage");  // Add this line
+    chromeOptions.addArguments("--no-sandbox");  // Add this line
+    chromeOptions.setExperimentalOption("prefs", chromePreferences);
+    
+    System.setProperty(ChromeDriverService.CHROME_DRIVER_SILENT_OUTPUT_PROPERTY, "true");
+    System.setProperty(ChromeDriverService.CHROME_DRIVER_LOG_LEVEL_PROPERTY, "SEVERE");
+    
+    if (testConfig.isHeadless()) {
+        chromeOptions.addArguments("--headless=new");
+        chromeOptions.addArguments("--window-size=" + size.getWidth() + "," + size.getHeight());  // Corrected width and height
+        chromeOptions.addArguments("--disable-gpu");
+    }
+
+    WebDriverManager.chromedriver().setup();  // Ensure ChromeDriver setup
+    ChromeDriverService service = new ChromeDriverService.Builder()
+            .withLogOutput(System.out)
+            .build();
+    driverThreadLocal.set(new ChromeDriver(service, chromeOptions));
+    break;
                     case "firefox":
                         FirefoxOptions firefoxOptions = new FirefoxOptions();
                         if (testConfig.isHeadless()) {
